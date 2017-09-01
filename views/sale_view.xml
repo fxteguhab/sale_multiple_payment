@@ -10,8 +10,8 @@
 				</xpath>
 
 				<xpath expr="/form/sheet/notebook/page[2]" position="after">
-					<page string="Payment Methods">
-						<group col="4">
+					<page string="Total Payment">
+						<group col="6">
 							<group colspan="2">
 								<field name="payment_cash_amount" readonly="1"/>
 							</group>

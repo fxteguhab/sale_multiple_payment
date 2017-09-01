@@ -28,6 +28,7 @@ class account_voucher(osv.osv):
 	
 	_columns = {
 		'payment_method_type': fields.selection([('cash', 'Cash'), ('transfer', 'Transfer'), ('receivable', 'EDC')], 'Payment Type', required=True),
+		'sale_order_id': fields.many2one('sale.order', string='Sale Order'),
 	}
 	
 	def _default_journal_id(self, cr, uid, context):
@@ -60,6 +61,13 @@ class account_voucher(osv.osv):
 			result.update({'value': value})
 		return result
 
+	def proforma_voucher(self, cr, uid, ids, context=None):
+		for account_voucher_data in self.browse(cr, uid, ids):
+			new_context = context.copy()
+			new_context.update({'payment_method_type': account_voucher_data.payment_method_type})
+			new_context.update({'sale_order_id': account_voucher_data.sale_order_id.id})
+			self.action_move_line_create(cr, uid, ids, context=new_context)
+		return True
 
 # ===========================================================================================================================
 
@@ -103,6 +111,28 @@ class account_move_line(osv.osv):
 	_inherit = 'account.move.line'
 	_description = 'Modifikasi untuk menambah amount di SO'
 	
+	_columns = {
+		'payment_method_type': fields.selection([('cash', 'Cash'), ('transfer', 'Transfer'), ('receivable', 'EDC')], 'Payment Type', required=True),
+	}
+	
 	def create(self, cr, uid, vals, context={}):
 		new_id = super(account_move_line, self).create(cr, uid, vals, context=context)
+		if context.get('payment_method_type', False) and context.get('sale_order_id', False):
+			sale_order_obj = self.pool.get('sale.order')
+			payment_method_type = context['payment_method_type']
+			sale_order_id = context['sale_order_id']
+			sale_order_data = sale_order_obj.browse(cr, uid, sale_order_id)
+			if payment_method_type and vals.get('debit', False):
+				if payment_method_type == 'cash':
+					sale_order_obj.write(cr, uid, sale_order_id, {
+						'payment_cash_amount': sale_order_data.payment_cash_amount + vals['debit']
+					})
+				elif payment_method_type == 'transfer':
+					sale_order_obj.write(cr, uid, sale_order_id, {
+						'payment_transfer_amount': sale_order_data.payment_transfer_amount + vals['debit']
+					})
+				elif payment_method_type == 'receivable':
+					sale_order_obj.write(cr, uid, sale_order_id, {
+						'payment_receivable_amount': sale_order_data.payment_receivable_amount + vals['debit']
+					})
 		return new_id
