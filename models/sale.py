@@ -44,11 +44,11 @@ class sale_order(osv.osv):
 
 	def create(self, cr, uid, vals, context={}):
 		new_id = super(sale_order, self).create(cr, uid, vals, context)
-		if vals.get('payment_cash_amount', False) == False and vals.get('payment_transfer_amount', False) == False \
-				and vals.get('payment_receivable_amount', False) == False :
-			self.write(cr, uid, new_id, {
-				'payment_cash_amount': self._amount_all(cr, uid, new_id, '', '')[new_id]['payment_cash_amount']
-			})
+		# if vals.get('payment_cash_amount', False) == False and vals.get('payment_transfer_amount', False) == False \
+		# 		and vals.get('payment_receivable_amount', False) == False :
+		# 	self.write(cr, uid, new_id, {
+		# 		'payment_cash_amount': self._amount_all(cr, uid, new_id, '', '')[new_id]['payment_cash_amount']
+		# 	})
 		return new_id
 
 	def _default_payment_method_id(self, cr, uid, context=None):
