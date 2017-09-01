@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+		<record id="account_account_journal_edc_tree" model="ir.ui.view">
+			<field name="name">account.account.journal.edc.tree</field>
+			<field name="model">account.journal.edc</field>
+			<field name="arch" type="xml">
+				<tree>
+					<field name="name"/>
+					<field name="id_edc"/>
+					<field name="journal_id"/>
+					<field name="receivable_account_id"/>
+					<field name="debit_fee"/>
+					<field name="credit_fee"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="account_account_journal_edc_form" model="ir.ui.view">
+			<field name="name">account.account.journal.edc.form</field>
+			<field name="model">account.journal.edc</field>
+			<field name="arch" type="xml">
+				<form>
+					<group>
+						<field name="name"/>
+						<field name="id_edc"/>
+						<field name="journal_id"/>
+						<field name="receivable_account_id"/>
+						<field name="fee_account_id"/>
+						<field name="debit_fee"/>
+						<field name="credit_fee"/>
+					</group>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_account_journal_form_inherit" model="ir.ui.view">
+			<field name="name">view.account.journal.form.inherit</field>
+			<field name="model">account.journal</field>
+			<field name="inherit_id" ref="account.view_account_journal_form"/>
+			<field name="arch" type="xml">
+				<field name="sequence_id" position="after">
+					<field name="is_edc"/>
+				</field>
+				<page string="Cash Registers" position="after">
+					<page string="EDC" attrs="{'invisible': [('type', '!=', 'bank')]}">
+						<field name="edc_machine_ids">
+							<tree editable="bottom">
+								<field name="name"/>
+								<field name="id_edc"/>
+								<field name="receivable_account_id"/>
+								<field name="fee_account_id"/>
+								<field name="debit_fee"/>
+								<field name="credit_fee"/>
+							</tree>
+						</field>
+					</page>
+				</page>
+			</field>
+		</record>
+
+		<record id="view_vendor_receipt_dialog_form_inherit" model="ir.ui.view">
+			<field name="name">view.vendor.receipt.dialog.form.inherit</field>
+			<field name="model">account.voucher</field>
+			<field name="inherit_id" ref="account_voucher.view_vendor_receipt_dialog_form"/>
+			<field name="arch" type="xml">
+				<field name="journal_id" position="after">
+					<field name="payment_method_type" on_change="_onchange_payment_method_type(payment_method_type)"/>
+				</field>
+				<field name="reference" position="attributes">
+					<attribute name="attrs" eval="{'required': [('payment_method_type', 'in', ['receivable'])]}"/>
+				</field>
+			</field>
+		</record>
+	</data>
+</openerp>

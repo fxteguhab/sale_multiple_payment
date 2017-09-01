@@ -1,0 +1,123 @@
+<openerp>
+	<data>
+		<record model="ir.ui.view" id="view_order_form_inherit">
+			<field name="name">sale.order.form.inherit</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_form"/>
+			<field name="arch" type="xml">
+				<xpath expr="/form/header/button[@name='cancel']" posistion="after">
+					<button name="action_customer_pay" string="Reg. Additional Payment" type="object" states="progress,manual" class="oe_highlight" groups="base.group_user"/>
+				</xpath>
+
+				<xpath expr="/form/sheet/notebook/page[2]" position="after">
+					<page string="Payment Methods">
+						<group col="4">
+							<group colspan="2">
+								<field name="payment_cash_amount" readonly="1"/>
+							</group>
+							<group colspan="2">
+								<field name="payment_transfer_amount" readonly="1"/>
+							</group>
+
+							<group colspan="2">
+								<field name="payment_receivable_amount" readonly="1"/>
+								<!--<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"-->
+										<!--widget="selection" attrs="{'readonly': [('state','!=','draft')]}"/>-->
+								<!--<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"-->
+										<!--attrs="{'readonly': [('state','!=','draft')]}"/>-->
+								<!--<field name="approval_code"-->
+										<!--attrs="{'required': [('edc_id','!=',False)], 'readonly': [('state','!=','draft')]}"/>-->
+								<!--<field name="card_fee" on_change="onchange_card_fee(card_fee,amount_total)"-->
+										<!--attrs="{'readonly': [('state','!=','draft')]}"/>-->
+								<!--<field name="card_fee_amount" readonly="1"/>-->
+							</group>
+						</group>
+					</page>
+				</xpath>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="sale_additional_payment_memory_form">
+			<field name="name">sale.additional.payment.memory.form</field>
+			<field name="model">sale.additional.payment.memory</field>
+			<field name="type">form</field>
+			<field name="arch" type="xml">
+				<form>
+					<group col="4">
+						<field name="invoice_id" string="TODO DELETE INVOICE ID" readonly="True"/>
+						<field name="amount_total" invisible="1"/>
+						<!--<newline/>-->
+
+						<field name="payment_cash_amount"/>
+						<newline/>
+
+						<field name="payment_transfer_amount"/>
+						<newline/>
+
+						<field name="payment_receivable_amount"/>
+						<newline/>
+						<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)" widget="selection"/>
+						<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"/>
+						<field name="approval_code"/>
+						<field name="card_fee" on_change="onchange_card_fee(card_fee,amount_total)"/>
+						<field name="card_fee_amount" readonly="1"/>
+					</group>
+
+					<footer>
+						<button string="Save" name="action_pay" type="object" class="oe_highlight"/>
+						<button string="Cancel" special="cancel" />
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="sale_order_filter_inherit">
+			<field name="name">sale.order.list.select.inherit</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_sales_order_filter"/>
+			<field name="arch" type="xml">
+				<search string="Search Sales Order" position="inside">
+					<filter string="EDC Only" name="filter_edc_only" domain="[('edc_id','!=',False)]"/>
+				</search>
+			</field>
+		</record>
+
+		<record id="sale_edc_recap_tree" model="ir.ui.view">
+			<field name="name">sale.edc.recap.tree</field>
+			<field name="model">sale.edc.recap</field>
+			<field name="type">tree</field>
+			<field name="arch" type="xml">
+				<tree create="false" edit="false" delete="false">
+					<field name="sale_date"/>
+					<field name="edc_id"/>
+					<field name="amount_debit"/>
+					<field name="amount_credit"/>
+					<field name="amount_total"/>
+					<field name="fee_debit"/>
+					<field name="fee_credit"/>
+					<field name="amount_nett_debit"/>
+					<field name="amount_nett_credit"/>
+					<field name="amount_nett_total"/>
+				</tree>
+			</field>
+		</record>
+
+		<!--<record model="ir.ui.view" id="register_payment_sale_multiple_payment_dialog_form">-->
+			<!--<field name="name">register.payment.sale.multiple.payment.dialog.form</field>-->
+			<!--<field name="model">sale.register.add.payment</field>-->
+			<!--<field name="arch" type="xml">-->
+				<!--<form string="Payment">-->
+					<!--<group>-->
+						<!--<field name="payment_transfer_amount"/>-->
+						<!--<field name="payment_cash_amount"/>-->
+						<!--<field name="payment_receivable_amount"/>-->
+					<!--</group>-->
+					<!--<footer>-->
+						<!--<button name="button_register_multiple_payment" string="Register Payment" class="oe_highlight" type="object"/> or-->
+						<!--<button string="Cancel" class="oe_link" special="cancel"/>-->
+					<!--</footer>-->
+				<!--</form>-->
+			<!--</field>-->
+		<!--</record>-->
+	</data>
+</openerp>

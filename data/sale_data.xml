@@ -1,0 +1,12 @@
+<openerp>
+	<data noupdate="1">
+
+		<record id="sale_multiple_payment_journal_cash_sales_journal" model="account.journal">
+			<field name="name">Cash Sales Journal</field>
+			<field name="code">CSJ</field>
+			<field name="type">sale</field>
+		</record>
+
+	</data>
+</openerp>
+
