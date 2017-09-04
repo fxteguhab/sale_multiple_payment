@@ -71,7 +71,7 @@
 					<field name="partner_id" readonly="1" required="1" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" string="Customer" context="{'search_default_customer': 1}"/>
 				</field>
 				<field name="amount" position="after">
-					<field name="payment_method_type" on_change="_onchange_payment_method_type(payment_method_type)"/>
+					<field name="payment_method_type" on_change="_onchange_payment_method_type(payment_method_type)" required="True"/>
 					<field name="reference" invisible="context.get('line_type', False)" string="Payment Ref"/>
 				</field>
 				<field name="period_id" position="after">
