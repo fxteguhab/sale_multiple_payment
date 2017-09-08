@@ -63,7 +63,7 @@ class account_voucher(osv.osv):
 
 	def proforma_voucher(self, cr, uid, ids, context=None):
 		for account_voucher_data in self.browse(cr, uid, ids):
-			new_context = context.copy()
+			new_context = context.copy() if context is not None else {}
 			new_context.update({'payment_method_type': account_voucher_data.payment_method_type})
 			new_context.update({'sale_order_id': account_voucher_data.sale_order_id.id})
 			self.action_move_line_create(cr, uid, ids, context=new_context)
