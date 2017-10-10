@@ -31,6 +31,9 @@
 										<!--attrs="{'readonly': [('state','!=','draft')]}"/>-->
 								<!--<field name="card_fee_amount" readonly="1"/>-->
 							</group>
+							<group colspan="2">
+								<field name="payment_giro_amount" readonly="1"/>
+							</group>
 						</group>
 					</page>
 				</xpath>
@@ -92,6 +95,12 @@
 			<field name="arch" type="xml">
 				<search string="Search Sales Order" position="inside">
 					<filter string="EDC Only" name="filter_edc_only" domain="[('edc_id','!=',False)]"/>
+					<group expand="0" string="Payment with">
+						<filter string="Cash" 		name="filter_is_cash" 		domain="[('payment_cash_amount','>',0)]"/>
+						<filter string="Transfer" 	name="filter_is_transfer" 	domain="[('payment_transfer_amount','>',0)]"/>
+						<filter string="EDC" 		name="filter_is_edc" 		domain="[('payment_receivable_amount','>',0)]"/>
+						<filter string="Giro" 		name="filter_is_giro" 		domain="[('payment_giro_amount','>',0)]"/>
+					</group>
 				</search>
 			</field>
 		</record>
