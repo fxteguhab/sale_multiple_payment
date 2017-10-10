@@ -37,6 +37,20 @@
 			</field>
 		</record>
 
+		<record id="view_order_tree_inherit" model="ir.ui.view">
+			<field name="name">sale.order.tree.inherit</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_tree"/>
+			<field name="arch" type="xml">
+				<field name="amount_total" position="after">
+					<field name="payment_cash_amount"/>
+					<field name="payment_transfer_amount"/>
+					<field name="payment_receivable_amount"/>
+					<field name="payment_giro_amount"/>
+				</field>
+			</field>
+		</record>
+
 		<record model="ir.ui.view" id="sale_additional_payment_memory_form">
 			<field name="name">sale.additional.payment.memory.form</field>
 			<field name="model">sale.additional.payment.memory</field>

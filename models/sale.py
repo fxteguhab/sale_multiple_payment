@@ -40,6 +40,7 @@ class sale_order(osv.osv):
 		'payment_transfer_amount': fields.float('Transfer Amount'),
 		'payment_cash_amount': fields.float('Cash Amount'),
 		'payment_receivable_amount': fields.float('EDC Amount'),
+		'payment_giro_amount': fields.float('Giro Amount'),
 	}
 
 	def _default_payment_method_id(self, cr, uid, context=None):
