@@ -95,6 +95,32 @@ class sale_order(osv.osv):
 			}}
 
 	# WORKFLOWS -------------------------------------------------------------------------------------------------------------
+	
+	def _make_payment(self, cr, uid, ids, amount, method, context=None):
+		"""
+		Register payment
+		"""
+		pass
+		
+	def action_button_confirm(self, cr, uid, ids, context=None):
+		"""
+		Make the first payment written on payment_transfer_amount, payment_cash_amount, payment_receivable_amount, and
+		payment_giro_amount fields automatically registered as customer payment with its respective payment methods
+		"""
+		result = super(sale_order, self).action_button_confirm(cr, uid, ids, context)
+		
+		order = self.browse(cr, uid, ids)
+		if order.payment_transfer_amount > 0:
+			self._make_payment(cr, uid, ids, order.amount, 'STUB', context=None)
+			pass
+		elif order.payment_cash_amount > 0:
+			pass
+		elif order.payment_receivable_amount > 0:
+			pass
+		elif order.payment_giro_amount > 0:
+			pass
+		
+		return result
 
 	def action_additional_payment(self, cr, uid, ids, context=None):
 		"""
