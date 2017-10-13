@@ -13,14 +13,14 @@
 					<page string="Total Payment">
 						<group col="6">
 							<group colspan="2">
-								<field name="payment_cash_amount" readonly="1"/>
+								<field name="payment_cash_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 							</group>
 							<group colspan="2">
-								<field name="payment_transfer_amount" readonly="1"/>
+								<field name="payment_transfer_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 							</group>
 
 							<group colspan="2">
-								<field name="payment_receivable_amount" readonly="1"/>
+								<field name="payment_receivable_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 								<!--<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"-->
 										<!--widget="selection" attrs="{'readonly': [('state','!=','draft')]}"/>-->
 								<!--<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"-->
@@ -32,7 +32,7 @@
 								<!--<field name="card_fee_amount" readonly="1"/>-->
 							</group>
 							<group colspan="2">
-								<field name="payment_giro_amount" readonly="1"/>
+								<field name="payment_giro_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 							</group>
 						</group>
 					</page>
