@@ -96,93 +96,29 @@ class sale_order(osv.osv):
 
 	# WORKFLOWS -------------------------------------------------------------------------------------------------------------
 	
-	def _make_payment(self, cr, uid, partner_id, amount, payment_method, context=None):
+	def _make_payment(self, cr, uid, ids, amount, method, context=None):
 		"""
 		Register payment
 		"""
-		if payment_method not in ['transfer', 'cash', 'receivable', 'giro']:
-			return False
-		
-		voucher_obj = self.pool.get('account.voucher')
-		# partner_obj = self.pool.get('res.partner')
-		journal_obj = self.pool.get('account.journal')
-		
-		
-	
-		# partner = partner_obj.browse(cr, uid, partner_id, context=context)
-		voucher_vals = {
-			'partner_id': partner_id,
-			# 'company_id': 1,
-			# 'period_id': 11,
-			# 'payment_rate_currency_id': 38,
-			# 'date': '2017-10-16',
-			# 'payment_rate': 1,
-			# 'reference': False,
-			# 'writeoff_acc_id': False,
-			# 'analytic_id': False,
-			# 'is_multi_currency': False,
-			# 'narration': False,
-			# 'name': False
-			'payment_method_type': payment_method,
-			'comment': 'Write-Off',
-			'payment_option': 'without_writeoff',
-			# 'journal_id': 8,
-			# 'account_id': 172,
-			'pre_line': True,
-			'amount': amount,
-			'type': 'receipt',
-		}
-		voucher_context = {
-		}
-		
-		# if journal.type in ('sale','sale_refund'):
-		# 	account_id = partner.property_account_receivable.id
-		# elif journal.type in ('purchase', 'purchase_refund','expense'):
-		# 	account_id = partner.property_account_payable.id
-		# elif ttype in ('sale', 'receipt'):
-		# 	account_id = journal.default_debit_account_id.id
-		# elif ttype in ('purchase', 'payment'):
-		# 	account_id = journal.default_credit_account_id.id
-		# else:
-		# 	account_id = journal.default_credit_account_id.id or journal.default_debit_account_id.id
-		
-		if payment_method == 'transfer':
-			pass
-		elif payment_method == 'cash':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['cash'])], limit=1)
-			pass
-		elif payment_method == 'receivable':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
-			pass
-		elif payment_method == 'giro':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
-			pass
-		
-		journal = journal_obj.browse(cr, uid, journal_id, context)
-		voucher_vals.update({
-			'account_id': journal.default_debit_account_id.id or journal.default_credit_account_id.id}
-		)
-		
-		# Create payment
-		return voucher_obj.create(cr, uid, voucher_vals, context)
+		pass
 		
 	def action_button_confirm(self, cr, uid, ids, context=None):
 		"""
-		Override
 		Make the first payment written on payment_transfer_amount, payment_cash_amount, payment_receivable_amount, and
 		payment_giro_amount fields automatically registered as customer payment with its respective payment methods
 		"""
 		result = super(sale_order, self).action_button_confirm(cr, uid, ids, context)
 		
-		order = self.browse(cr, uid, ids, context)
+		order = self.browse(cr, uid, ids)
 		if order.payment_transfer_amount > 0:
-			self._make_payment(cr, uid, order.partner_id, order.payment_transfer_amount, 'transfer', context=None)
-		if order.payment_cash_amount > 0:
-			self._make_payment(cr, uid, order.partner_id, order.payment_cash_amount, 'cash', context=None)
-		if order.payment_receivable_amount > 0:
-			self._make_payment(cr, uid, order.partner_id, order.payment_receivable_amount, 'receivable', context=None)
-		if order.payment_giro_amount > 0:
-			self._make_payment(cr, uid, order.partner_id, order.payment_giro_amount, 'giro', context=None)
+			self._make_payment(cr, uid, ids, order.amount, 'STUB', context=None)
+			pass
+		elif order.payment_cash_amount > 0:
+			pass
+		elif order.payment_receivable_amount > 0:
+			pass
+		elif order.payment_giro_amount > 0:
+			pass
 		
 		return result
 
