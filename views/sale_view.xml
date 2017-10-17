@@ -73,6 +73,9 @@
 
 						<field name="payment_receivable_amount"/>
 						<newline/>
+
+						<field name="payment_giro_amount"/>
+						<newline/>
 						<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)" widget="selection"/>
 						<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"/>
 						<field name="approval_code"/>
@@ -134,6 +137,7 @@
 						<!--<field name="payment_transfer_amount"/>-->
 						<!--<field name="payment_cash_amount"/>-->
 						<!--<field name="payment_receivable_amount"/>-->
+						<!--<field name="payment_giro_amount"/>-->
 					<!--</group>-->
 					<!--<footer>-->
 						<!--<button name="button_register_multiple_payment" string="Register Payment" class="oe_highlight" type="object"/> or-->

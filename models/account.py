@@ -1,6 +1,12 @@
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
 
+_PAYMENT_METHOD_TYPE = [
+	('cash', 'Cash'),
+	('transfer', 'Transfer'),
+	('receivable', 'EDC'),
+	('giro', 'Giro')
+]
 
 class account_journal(osv.osv):
 	_inherit = 'account.journal'
@@ -27,7 +33,7 @@ class account_voucher(osv.osv):
 	# COLUMNS ---------------------------------------------------------------------------------------------------------------
 	
 	_columns = {
-		'payment_method_type': fields.selection([('cash', 'Cash'), ('transfer', 'Transfer'), ('receivable', 'EDC')], 'Payment Type', required=True),
+		'payment_method_type': fields.selection(_PAYMENT_METHOD_TYPE, 'Payment Type', required=True),
 		'sale_order_id': fields.many2one('sale.order', string='Sale Order'),
 	}
 	
@@ -50,7 +56,7 @@ class account_voucher(osv.osv):
 			domain.update({'journal_id': [('type', 'in', ['cash'])]})
 			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['cash'])])
 			value.update({'journal_id': journal_id[0] if len(journal_id) > 0 else False})
-		elif payment_method_type in ['transfer', 'receivable']:
+		elif payment_method_type in ['transfer', 'receivable', 'giro']:
 			domain.update({'journal_id': [('type', 'in', ['bank'])]})
 			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])])
 			value.update({'journal_id': journal_id[0] if len(journal_id) > 0 else False})
@@ -112,8 +118,7 @@ class account_move_line(osv.osv):
 	_description = 'Modifikasi untuk menambah amount di SO'
 	
 	_columns = {
-		'payment_method_type': fields.selection([('cash', 'Cash'), ('transfer', 'Transfer'), ('receivable', 'EDC'),
-			('giro', 'Giro')], 'Payment Type'),
+		'payment_method_type': fields.selection(_PAYMENT_METHOD_TYPE, 'Payment Type'),
 	}
 	
 	def create(self, cr, uid, vals, context={}):
@@ -135,5 +140,9 @@ class account_move_line(osv.osv):
 				elif payment_method_type == 'receivable':
 					sale_order_obj.write(cr, uid, sale_order_id, {
 						'payment_receivable_amount': sale_order_data.payment_receivable_amount + vals['debit']
+					})
+				elif payment_method_type == 'giro':
+					sale_order_obj.write(cr, uid, sale_order_id, {
+						'payment_giro_amount': sale_order_data.payment_giro_amount + vals['debit']
 					})
 		return new_id

@@ -417,6 +417,7 @@ class sale_additional_payment_memory(osv.osv_memory):
 		'payment_transfer_amount': fields.float('Transfer Amount'),
 		'payment_cash_amount': fields.float('Cash Amount'),
 		'payment_receivable_amount': fields.float('EDC Amount'),
+		'payment_giro_amount': fields.float('Giro Amount'),
 		'amount_total': fields.float('Amount Total'),
 	}
 
