@@ -112,7 +112,8 @@ class account_move_line(osv.osv):
 	_description = 'Modifikasi untuk menambah amount di SO'
 	
 	_columns = {
-		'payment_method_type': fields.selection([('cash', 'Cash'), ('transfer', 'Transfer'), ('receivable', 'EDC')], 'Payment Type'),
+		'payment_method_type': fields.selection([('cash', 'Cash'), ('transfer', 'Transfer'), ('receivable', 'EDC'),
+			('giro', 'Giro')], 'Payment Type'),
 	}
 	
 	def create(self, cr, uid, vals, context={}):
