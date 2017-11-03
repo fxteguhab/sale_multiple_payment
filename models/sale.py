@@ -55,6 +55,15 @@ class sale_order(osv.osv):
 	_defaults = {
 		'payment_method_id': _default_payment_method_id,
 	}
+	
+	def create(self, cr, uid, vals, context={}):
+		new_id = super(sale_order, self).create(cr, uid, vals, context)
+		if not vals.get('payment_cash_amount', False) and not vals.get('payment_transfer_amount', False) and \
+				not vals.get('payment_receivable_amount', False) and not vals.get('payment_giro_amount', False):
+			self.write(cr, uid, new_id, {
+				'payment_cash_amount': self.browse(cr, uid, new_id, context=context).amount_total
+			}, context=context)
+		return new_id
 
 	# CONSTRAINTS -----------------------------------------------------------------------------------------------------------
 
@@ -294,7 +303,6 @@ class sale_order(osv.osv):
 		for order in self.browse(cr, uid, ids, context=context):
 			res[order.id]['card_fee_amount'] = res[order.id]['amount_total'] * order.card_fee / 100
 			res[order.id]['amount_total'] = res[order.id]['amount_total'] + res[order.id]['card_fee_amount']
-			res[order.id]['payment_cash_amount'] = res[order.id]['amount_total']
 		return res
 	
 	# FUNCTION -------------------------------------------------------------------------------------------------------------
