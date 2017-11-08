@@ -64,6 +64,21 @@ class sale_order(osv.osv):
 				'payment_cash_amount': self.browse(cr, uid, new_id, context=context).amount_total
 			}, context=context)
 		return new_id
+	
+	def  write(self, cr, uid, ids, vals, context=None):
+		for sale in self.browse(cr, uid, ids):
+		# Lakukan pengecekan apakah amount total berubah, amount total diketahui berubah ketika sudah dilakukan write
+			old_amount_total = sale.amount_total
+			super(sale_order, self).write(cr, uid, sale.id, vals, context)
+			new_amount_total = sale.amount_total
+			if old_amount_total != new_amount_total:
+			# Jika berubah maka cek apakah user merubah salah 1 field payment, jika iya maka jangan update
+				if not vals.get('payment_cash_amount', False) and not vals.get('payment_transfer_amount', False) and \
+						not vals.get('payment_receivable_amount', False) and not vals.get('payment_giro_amount', False):
+					self.write(cr, uid, sale.id, {
+						'payment_cash_amount': new_amount_total
+					}, context=context)
+		return True
 
 	# CONSTRAINTS -----------------------------------------------------------------------------------------------------------
 
