@@ -67,8 +67,11 @@
 			<field name="arch" type="xml">
 				<field name="journal_id" position="replace"/>
 				<field name="reference" position="replace"/>
-				<field name="partner_id" position="replace">
-					<field name="partner_id" readonly="1" required="1" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" string="Customer" context="{'search_default_customer': 1}"/>
+				<field name="partner_id" position="attributes">
+					<attribute name="readonly">1</attribute>
+					<attribute name="required">1</attribute>
+					<attribute name="string">Customer</attribute>
+					<attribute name="context">{'search_default_customer': 1}</attribute>
 				</field>
 				<field name="amount" position="after">
 					<field name="payment_method_type" on_change="_onchange_payment_method_type(payment_method_type)" required="True"/>
