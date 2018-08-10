@@ -12,28 +12,35 @@
 				<xpath expr="/form/sheet/notebook/page[2]" position="after">
 					<page string="Total Payment">
 						<group col="6">
+							<field name="payment_cash_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+							<field name="payment_transfer_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+							<field name="payment_giro_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+							<field name="payment_receivable_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+							<field name="approval_code"	attrs="{'readonly': [('state','!=','draft')]}"/>
+							<field name="card_fee_amount"/>
+							<!--
 							<group colspan="2">
-								<field name="payment_cash_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+								
 							</group>
 							<group colspan="2">
-								<field name="payment_transfer_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+								
 							</group>
 
 							<group colspan="2">
-								<field name="payment_receivable_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
+							-->
 								<!--<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"-->
 										<!--widget="selection" attrs="{'readonly': [('state','!=','draft')]}"/>-->
 								<!--<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"-->
 										<!--attrs="{'readonly': [('state','!=','draft')]}"/>-->
-								<!--<field name="approval_code"-->
+								
 										<!--attrs="{'required': [('edc_id','!=',False)], 'readonly': [('state','!=','draft')]}"/>-->
 								<!--<field name="card_fee" on_change="onchange_card_fee(card_fee,amount_total)"-->
 										<!--attrs="{'readonly': [('state','!=','draft')]}"/>-->
-								<!--<field name="card_fee_amount" readonly="1"/>-->
-							</group>
+								
+							<!--</group>
 							<group colspan="2">
-								<field name="payment_giro_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
-							</group>
+								
+							</group>-->
 						</group>
 					</page>
 				</xpath>
@@ -61,30 +68,34 @@
 			<field name="arch" type="xml">
 				<form>
 					<group col="4">
-						<field name="invoice_id" string="TODO DELETE INVOICE ID" readonly="True"/>
-						<field name="amount_total" invisible="1"/>
-						<!--<newline/>-->
+						<field name="invoice_id" string="INVOICE ID" readonly="True"/>
+						<newline/>
+						<field name="amount_total" readonly="True" invisible="1" />
+						<field name="amount_residual" readonly="True"/>
+						<newline/>
 
 						<field name="payment_cash_amount"/>
-						<newline/>
+						<!--<newline/>-->
 
 						<field name="payment_transfer_amount"/>
-						<newline/>
+						<!--<newline/>-->
 
 						<field name="payment_receivable_amount"/>
-						<newline/>
+						<!--<newline/>-->
 
 						<field name="payment_giro_amount"/>
-						<newline/>
+						<!--<newline/>-->
+						<!--
 						<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)" widget="selection"/>
 						<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"/>
+						-->
 						<field name="approval_code"/>
-						<field name="card_fee" on_change="onchange_card_fee(card_fee,amount_total)"/>
-						<field name="card_fee_amount" readonly="1"/>
+						<!--<field name="card_fee" on_change="onchange_card_fee(card_fee,amount_total)"/>-->
+						<field name="card_fee_amount"/>
 					</group>
 
 					<footer>
-						<button string="Save" name="action_pay" type="object" class="oe_highlight"/>
+						<button string="Pay" name="action_pay" type="object" class="oe_highlight"/>
 						<button string="Cancel" special="cancel" />
 					</footer>
 				</form>

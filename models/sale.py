@@ -34,7 +34,7 @@ class sale_order(osv.osv):
 			('credit','Credit')
 		], 'Card'),
 		'card_fee': fields.float('Card Fee (%)'),
-		'card_fee_amount': fields.function(_amount_all_wrapper, type='float', string='Card Fee Amount', store=True, multi='sums'),
+		'card_fee_amount': fields.float('Card Fee Amount'),#fields.function(_amount_all_wrapper, type='float', string='Card Fee Amount', store=True, multi='sums'),
 		'amount_total': fields.function(_amount_all_wrapper, type='float', string='Total Amount', store=True, multi='sums'),
 		'is_journal_edc': fields.function(_is_journal_edc, type='boolean', string='Is Journal EDC'),
 		'payment_transfer_amount': fields.float('Transfer Amount'),
@@ -134,7 +134,8 @@ class sale_order(osv.osv):
 		context.update({
 			'default_invoice_id': invoice_id.id,
 			'default_amount_total': so.amount_total,
-			'default_sale_order_id': so.id
+			'default_sale_order_id': so.id,
+			'default_amount_residual' : invoice_id.residual,
 		})
 		return {
 			'type': 'ir.actions.act_window',
@@ -442,6 +443,7 @@ class sale_additional_payment_memory(osv.osv_memory):
 		'payment_receivable_amount': fields.float('EDC Amount'),
 		'payment_giro_amount': fields.float('Giro Amount'),
 		'amount_total': fields.float('Amount Total'),
+		'amount_residual':fields.float('Balance'),
 	}
 
 	def onchange_debit_or_credit(self, cr, uid, ids, edc_id, credit_or_debit, context=None):
@@ -461,43 +463,155 @@ class sale_additional_payment_memory(osv.osv_memory):
 	def onchange_card_fee(self, cr, uid, ids, card_fee, amount_total, context=None):
 		return {'value': {'card_fee_amount': card_fee * amount_total / 100}}
 
+
+	def _make_payment(self, cr, uid, partner_id,amount, payment_method, invoice_id, context=None):
+
+		account_move_line_obj = self.pool.get('account.move.line')
+		account_move_id = account_move_line_obj.search(cr, uid, [('invoice', '=', invoice_id.id)])[0]
+		account_move = account_move_line_obj.browse(cr, uid, [account_move_id])
+
+		journal_obj = self.pool.get('account.journal')
+		if payment_method == 'transfer':
+			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+			pass
+		elif payment_method == 'cash':
+			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['cash'])], limit=1)
+			pass
+		elif payment_method == 'receivable':
+			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+			pass
+		elif payment_method == 'giro':
+			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+			pass
+		user_data = self.pool['res.users'].browse(cr, uid, uid)
+		default_account_sales = user_data.default_account_sales_override or user_data.branch_id.default_account_sales
+		journal = journal_obj.browse(cr, uid, journal_id, context)
+		if default_account_sales:
+			account_id = default_account_sales.id
+		else:
+			account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
+
+		voucher_vals = {
+			'invoice_id': invoice_id.id,
+			'payment_expected_currency': invoice_id.currency_id.id,
+			'invoice_type': invoice_id.type,
+			'partner_id': partner_id,
+			'journal_id': journal_id[0],
+			'type': invoice_id.type in ('out_invoice','out_refund') and 'receipt' or 'payment',
+			'reference': invoice_id.origin,
+			'amount': amount,
+			'account_id': account_id,
+			'payment_method_type': payment_method,
+			'comment': 'Write-Off',
+			'payment_option': 'without_writeoff',
+			'line_cr_ids': [(0, False, {
+				'date_due': fields.date.today(),
+				'reconcile': True if amount >= account_move.debit - account_move.credit else False,
+				'date_original': fields.date.today(),
+				'move_line_id': account_move.id,
+				'amount_unreconciled': account_move.debit - account_move.credit,
+				'amount': amount,
+				'amount_original': account_move.debit,
+				'account_id': account_move.account_id.id
+			})],
+			}	
+
+		voucher_obj = self.pool.get('account.voucher')
+		voucher_id = voucher_obj.create(cr, uid,voucher_vals,context)
+		voucher_obj.signal_workflow(cr, uid, [voucher_id], 'proforma_voucher', context)
+		
+		# if residual==0, paid
+		if invoice_id.residual == 0:
+			invoice_obj = self.pool.get('account.invoice')
+			invoice_obj.write(cr, uid, [invoice_id.id], {'reconciled': True}, context)
+			pass
+		return True
+
+
 	def action_pay(self, cr, uid, ids, context=None):
 		if not ids: return True
 		
-		voucher_obj = self.pool.get('account.voucher')
 		additional_payment = self.browse(cr, uid, ids[0])
 		so = additional_payment.sale_order_id
-	# Asumsi so cuman ada 1 dan sudah ada untuk so yang bersangkutan
+		# Asumsi so cuman ada 1 dan sudah ada untuk so yang bersangkutan
 		invoice = so.invoice_ids[0]
 		
 		context.update({
 			#'default_type': inv.type in ('out_invoice','out_refund') and 'receipt' or 'payment',
 		})
+			
+		if additional_payment.payment_transfer_amount > 0:
+			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_transfer_amount, 'transfer', invoice, context=context)
+		if additional_payment.payment_cash_amount > 0:
+			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_cash_amount, 'cash', invoice, context=context)
+		if additional_payment.payment_receivable_amount > 0:
+			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_receivable_amount, 'receivable', invoice, context=context)
+		if additional_payment.payment_giro_amount > 0:
+			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_giro_amount, 'giro',invoice, context=context)
 		
-		if additional_payment.payment_cash_amount:
-			new_voucher_id = voucher_obj.create(cr, uid, {
-				'invoice_id': invoice.id,
-				'payment_expected_currency': invoice.currency_id.id,
-				'invoice_type': invoice.type,
-				'partner_id': self.pool.get('res.partner')._find_accounting_partner(invoice.partner_id).id,
-				'journal_id': invoice.journal_id.id,
-				'type': invoice.type in ('out_invoice','out_refund') and 'receipt' or 'payment',
-				'reference': invoice.name,
+		'''
+		journal_obj = self.pool.get('account.journal')
+		journal_id = journal_obj.search(cr, uid, [('type', 'in', ['cash'])], limit=1)
+		user_data = self.pool['res.users'].browse(cr, uid, uid)
+		default_account_sales = user_data.default_account_sales_override or user_data.branch_id.default_account_sales
+		journal = journal_obj.browse(cr, uid, journal_id, context)
+		if default_account_sales:
+			account_id = default_account_sales.id
+		else:
+			account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
+			
+		print 'invoice origin=' + str(invoice.origin)
+		print 'invoice id=' + str(invoice.id)
+		print 'journal=' + str(invoice.journal_id.id)
+		print 'amount=' + str(invoice.partner_id.id)
+		
+		account_move_line_obj = self.pool.get('account.move.line')
+		account_move_id = account_move_line_obj.search(cr, uid, [('invoice', '=', invoice.id)])[0]
+		account_move = account_move_line_obj.browse(cr, uid, [account_move_id])
+
+		voucher_vals = {
+			'invoice_id': invoice.id,
+			'payment_expected_currency': invoice.currency_id.id,
+			'invoice_type': invoice.type,
+			'partner_id': invoice.partner_id.id, #self.pool.get('res.partner')._find_accounting_partner(invoice.partner_id).id,
+			'journal_id': journal_id[0],#invoice.journal_id.id,
+			'type': invoice.type in ('out_invoice','out_refund') and 'receipt' or 'payment',
+			'reference': invoice.origin,
+			'amount': additional_payment.payment_cash_amount,
+			'account_id': account_id,#invoice.account_id.id,
+			#'line_dr_ids': [(0, False, {
+			#	'type': 'dr' if invoice.type == 'in_invoice' else 'cr',
+			#	'account_id': account_id,
+			#	'amount': additional_payment.payment_cash_amount,
+			#	})]
+			# 'date': canvas_data.date_delivered,
+			# 'pay_now': 'pay_now',
+			# 'date_due': canvas_data.date_delivered,
+			# 'line_dr_ids': [(0, False, {
+			# 	'type': 'dr' if inv.type == 'in_invoice' else 'cr',
+			# 	'account_id': inv.account_id.id,
+			# 	'partner_id': inv.partner_id.id,
+			# 	'amount': inv.type in ('out_refund', 'in_refund') and -inv.residual or inv.residual,
+			# 	'move_line_id': move_line_id,
+			# 	'reconcile': True,	
+			'line_cr_ids': [(0, False, {
+				'date_due': fields.date.today(),
+				'reconcile': True if  additional_payment.payment_cash_amount >= account_move.debit - account_move.credit else False,
+				'date_original': fields.date.today(),
+				'move_line_id': account_move.id,
+				'amount_unreconciled': account_move.debit - account_move.credit,
 				'amount': additional_payment.payment_cash_amount,
-				'account_id': invoice.account_id.id,
-				# 'date': canvas_data.date_delivered,
-				# 'pay_now': 'pay_now',
-				# 'date_due': canvas_data.date_delivered,
-				# 'line_dr_ids': [(0, False, {
-				# 	'type': 'dr' if inv.type == 'in_invoice' else 'cr',
-				# 	'account_id': inv.account_id.id,
-				# 	'partner_id': inv.partner_id.id,
-				# 	'amount': inv.type in ('out_refund', 'in_refund') and -inv.residual or inv.residual,
-				# 	'move_line_id': move_line_id,
-				# 	'reconcile': True,
-				
-				},context)
+				'amount_original': account_move.debit,
+				'account_id': account_move.account_id.id
+			})],		
+		}
+
+
+		if additional_payment.payment_cash_amount:
+			voucher_obj = self.pool.get('account.voucher')
+			new_voucher_id = voucher_obj.create(cr, uid,voucher_vals,context)
 			voucher_obj.proforma_voucher(cr, uid, [new_voucher_id])
+		'''
 		return True
 
 # ==========================================================================================================================
