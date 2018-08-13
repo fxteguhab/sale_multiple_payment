@@ -179,11 +179,11 @@ class sale_order(osv.osv):
 		}
 
 
-	def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice = False, context=None):
-		res = super(sale_order, self).action_invoice_create(cr, uid, ids, grouped, states, date_invoice, context)
+	#def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice = False, context=None):
+	#	res = super(sale_order, self).action_invoice_create(cr, uid, ids, grouped, states, date_invoice, context)
 		# Make created invoice to open state
 
-		return res
+	#	return res
 		# if states is None:
 		# 	states = ['confirmed', 'done', 'exception']
 		# res = False
