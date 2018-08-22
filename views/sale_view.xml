@@ -12,8 +12,6 @@
 				<xpath expr="/form/sheet/notebook/page[2]" position="after">
 					<page string="Total Payment">
 						<group col="6">
-							<field name="is_paid"/>
-							<newline/>
 							<field name="payment_cash_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 							<field name="payment_transfer_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 							<field name="payment_giro_amount" attrs="{'readonly': [('state','!=','draft')]}"/>
