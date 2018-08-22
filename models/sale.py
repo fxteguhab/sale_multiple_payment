@@ -41,6 +41,7 @@ class sale_order(osv.osv):
 		'payment_cash_amount': fields.float('Cash Amount'),
 		'payment_receivable_amount': fields.float('EDC Amount'),
 		'payment_giro_amount': fields.float('Giro Amount'),
+		'is_paid': fields.boolean('Paid ?'),
 	}
 
 	def _default_payment_method_id(self, cr, uid, context=None):
@@ -54,11 +55,12 @@ class sale_order(osv.osv):
 
 	_defaults = {
 		'payment_method_id': _default_payment_method_id,
+		'is_paid' : True,
 	}
 	
 	def create(self, cr, uid, vals, context={}):
 		new_id = super(sale_order, self).create(cr, uid, vals, context)
-		if not vals.get('payment_cash_amount', False) and not vals.get('payment_transfer_amount', False) and \
+		if vals.get('is_paid',True) and not vals.get('payment_cash_amount', False) and not vals.get('payment_transfer_amount', False) and \
 				not vals.get('payment_receivable_amount', False) and not vals.get('payment_giro_amount', False):
 			self.write(cr, uid, new_id, {
 				'payment_cash_amount': self.browse(cr, uid, new_id, context=context).amount_total
@@ -73,7 +75,7 @@ class sale_order(osv.osv):
 			new_amount_total = sale.amount_total
 			if old_amount_total != new_amount_total:
 			# Jika berubah maka cek apakah user merubah salah 1 field payment, jika iya maka jangan update
-				if not vals.get('payment_cash_amount', False) and not vals.get('payment_transfer_amount', False) and \
+				if vals.get('is_paid',True) and not vals.get('payment_cash_amount', False) and not vals.get('payment_transfer_amount', False) and \
 						not vals.get('payment_receivable_amount', False) and not vals.get('payment_giro_amount', False):
 					self.write(cr, uid, sale.id, {
 						'payment_cash_amount': new_amount_total
