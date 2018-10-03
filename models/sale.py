@@ -34,13 +34,17 @@ class sale_order(osv.osv):
 			('credit','Credit')
 		], 'Card'),
 		'card_fee': fields.float('Card Fee (%)'),
-		'card_fee_amount': fields.float('Card Fee Amount'),#fields.function(_amount_all_wrapper, type='float', string='Card Fee Amount', store=True, multi='sums'),
+		'card_fee_amount': fields.float('Card Fee'),#fields.function(_amount_all_wrapper, type='float', string='Card Fee Amount', store=True, multi='sums'),
 		'amount_total': fields.function(_amount_all_wrapper, type='float', string='Total Amount', store=True, multi='sums'),
 		'is_journal_edc': fields.function(_is_journal_edc, type='boolean', string='Is Journal EDC'),
 		'payment_transfer_amount': fields.float('Transfer Amount'),
 		'payment_cash_amount': fields.float('Cash Amount'),
 		'payment_receivable_amount': fields.float('EDC Amount'),
 		'payment_giro_amount': fields.float('Giro Amount'),
+		'payment_transfer_journal': fields.many2one('account.journal', 'Journal for Transfer Payment', domain=[('type','in',['cash','bank'])]),
+		'payment_cash_journal': fields.many2one('account.journal', 'Journal for Cash Payment', domain=[('type','in',['cash','bank'])]),
+		'payment_receivable_journal': fields.many2one('account.journal', 'Journal for EDC Payment', domain=[('type','in',['cash','bank'])]),
+		'payment_giro_journal': fields.many2one('account.journal', 'Journal for Giro Payment', domain=[('type','in',['cash','bank'])]),
 		'is_paid': fields.boolean('Paid ?'),
 	}
 
@@ -466,25 +470,26 @@ class sale_additional_payment_memory(osv.osv_memory):
 		return {'value': {'card_fee_amount': card_fee * amount_total / 100}}
 
 
-	def _make_payment(self, cr, uid, partner_id,amount, payment_method, invoice_id, context=None):
+	def _make_payment(self, cr, uid, partner_id,amount, payment_method, invoice_id, journal_id=None, context=None):
 
 		account_move_line_obj = self.pool.get('account.move.line')
 		account_move_id = account_move_line_obj.search(cr, uid, [('invoice', '=', invoice_id.id)])[0]
 		account_move = account_move_line_obj.browse(cr, uid, [account_move_id])
 
-		journal_obj = self.pool.get('account.journal')
-		if payment_method == 'transfer':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
-			pass
-		elif payment_method == 'cash':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['cash'])], limit=1)
-			pass
-		elif payment_method == 'receivable':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
-			pass
-		elif payment_method == 'giro':
-			journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
-			pass
+		if not journal_id:
+			journal_obj = self.pool.get('account.journal')
+			if payment_method == 'transfer':
+				journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+				pass
+			elif payment_method == 'cash':
+				journal_id = journal_obj.search(cr, uid, [('type', 'in', ['cash'])], limit=1)
+				pass
+			elif payment_method == 'receivable':
+				journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+				pass
+			elif payment_method == 'giro':
+				journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+				pass
 		user_data = self.pool['res.users'].browse(cr, uid, uid)
 		default_account_sales = user_data.default_account_sales_override or user_data.branch_id.default_account_sales
 		journal = journal_obj.browse(cr, uid, journal_id, context)
@@ -521,8 +526,8 @@ class sale_additional_payment_memory(osv.osv_memory):
 		voucher_obj = self.pool.get('account.voucher')
 		voucher_id = voucher_obj.create(cr, uid,voucher_vals,context)
 		voucher_obj.signal_workflow(cr, uid, [voucher_id], 'proforma_voucher', context)
-		
-		# if residual==0, paid
+
+	# if residual==0, paid
 		if invoice_id.residual == 0:
 			invoice_obj = self.pool.get('account.invoice')
 			invoice_obj.write(cr, uid, [invoice_id.id], {'reconciled': True}, context)
