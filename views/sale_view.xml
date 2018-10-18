@@ -14,21 +14,21 @@
 						<group col="8">
 							<group colspan="2" string="Cash">
 								<field name="payment_cash_amount" string="Amount" attrs="{'readonly': [('state','!=','draft')]}" />
-								<field name="payment_cash_journal" string="Journal" widget="selection" attrs="{'readonly': [('state','!=','draft')], 'required': [('payment_cash_amount','>',0)]}" />
+								<field name="payment_cash_journal" string="Journal" widget="selection" attrs="{'readonly': [('state','!=','draft')]}" />
 							</group>
 							<group colspan="2" string="EDC">
 								<field name="payment_receivable_amount" string="Amount" attrs="{'readonly': [('state','!=','draft')]}"/>
-								<field name="payment_receivable_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')], 'required': [('payment_receivable_amount','>',0)]}" />
+								<field name="payment_receivable_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')]}" />
 								<field name="approval_code"	attrs="{'readonly': [('state','!=','draft')]}"/>
 								<field name="card_fee_amount"/>
 							</group>
 							<group colspan="2" string="Transfer">
 								<field name="payment_transfer_amount" string="Amount" attrs="{'readonly': [('state','!=','draft')]}"/>
-								<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')], 'required': [('payment_transfer_amount','>',0)]}" />
+								<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')]}" />
 							</group>
 							<group colspan="2" string="Giro">
 								<field name="payment_giro_amount" string="Amount" attrs="{'readonly': [('state','!=','draft')]}"/>
-								<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')], 'required': [('payment_giro_amount','>',0)]}" />
+								<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')]}" />
 							</group>
 							<!--
 							<group colspan="2">
@@ -79,31 +79,32 @@
 			<field name="type">form</field>
 			<field name="arch" type="xml">
 				<form>
-					<group col="4">
+					<group colspan="4" string="INVOICE DATA">
 						<field name="invoice_id" string="INVOICE ID" readonly="True"/>
 						<newline/>
 						<field name="amount_total" readonly="True" invisible="1" />
 						<field name="amount_residual" readonly="True"/>
-						<newline/>
-
-						<field name="payment_cash_amount"/>
-						<!--<newline/>-->
-
-						<field name="payment_transfer_amount"/>
-						<!--<newline/>-->
-
-						<field name="payment_receivable_amount"/>
-						<!--<newline/>-->
-
-						<field name="payment_giro_amount"/>
-						<!--<newline/>-->
-						<!--
-						<field name="edc_id" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)" widget="selection"/>
-						<field name="debit_or_credit" on_change="onchange_debit_or_credit(edc_id,debit_or_credit)"/>
-						-->
-						<field name="approval_code"/>
-						<!--<field name="card_fee" on_change="onchange_card_fee(card_fee,amount_total)"/>-->
-						<field name="card_fee_amount"/>
+					</group>
+					<newline/>
+					<group col="8">
+							<group colspan="2" string="Cash">
+								<field name="payment_cash_amount" string="Amount" />
+								<field name="payment_cash_journal" string="Journal" widget="selection" attrs="{'required': [('payment_cash_amount','>',0)]}" />
+							</group>
+							<group colspan="2" string="EDC">
+								<field name="payment_receivable_amount" string="Amount" />
+								<field name="payment_receivable_journal" widget="selection" string="Journal" attrs="{'required': [('payment_receivable_amount','>',0)]}" />
+								<field name="approval_code"	/>
+								<field name="card_fee_amount"/>
+							</group>
+							<group colspan="2" string="Transfer">
+								<field name="payment_transfer_amount" string="Amount"/>
+								<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'required': [('payment_transfer_amount','>',0)]}" />
+							</group>
+							<group colspan="2" string="Giro">
+								<field name="payment_giro_amount" string="Amount" />
+								<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'required': [('payment_giro_amount','>',0)]}" />
+							</group>
 					</group>
 
 					<footer>

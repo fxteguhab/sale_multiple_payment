@@ -450,7 +450,35 @@ class sale_additional_payment_memory(osv.osv_memory):
 		'payment_giro_amount': fields.float('Giro Amount'),
 		'amount_total': fields.float('Amount Total'),
 		'amount_residual':fields.float('Balance'),
+		'payment_transfer_journal': fields.many2one('account.journal', 'Journal for Transfer Payment', domain=[('type','in',['cash','bank'])]),
+		'payment_cash_journal': fields.many2one('account.journal', 'Journal for Cash Payment', domain=[('type','in',['cash','bank'])]),
+		'payment_receivable_journal': fields.many2one('account.journal', 'Journal for EDC Payment', domain=[('type','in',['cash','bank'])]),
+		'payment_giro_journal': fields.many2one('account.journal', 'Journal for Giro Payment', domain=[('type','in',['cash','bank'])]),
 	}
+
+
+	def _default_payment_cash_journal(self, cr, uid, context={}):
+		user_data = self.pool['res.users'].browse(cr, uid, uid)
+		if user_data.default_journal_sales_override:
+			return user_data.default_journal_sales_override.id
+		else:
+			if user_data.branch_id.default_journal_sales:
+				return user_data.branch_id.default_journal_sales.id
+			else:
+				return None
+
+	def _default_payment_receivable_journal(self, cr, uid, context={}):
+		journal_id = self.pool.get('account.journal').search(cr, uid, [('type', 'in', ['bank'])], limit=1)
+		return journal_id and journal_id[0] or None
+
+
+	_defaults = {
+		'payment_cash_journal': _default_payment_cash_journal,
+		'payment_receivable_journal': _default_payment_receivable_journal,
+		'payment_giro_journal' : _default_payment_receivable_journal,
+		'payment_transfer_journal' : _default_payment_receivable_journal,
+	}
+
 
 	def onchange_debit_or_credit(self, cr, uid, ids, edc_id, credit_or_debit, context=None):
 		if edc_id and credit_or_debit:
@@ -491,7 +519,7 @@ class sale_additional_payment_memory(osv.osv_memory):
 				journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
 				pass
 		user_data = self.pool['res.users'].browse(cr, uid, uid)
-		default_account_sales = user_data.default_account_sales_override or user_data.branch_id.default_account_sales
+		default_account_sales = user_data.branch_id.default_account_sales
 		journal = journal_obj.browse(cr, uid, journal_id, context)
 		if default_account_sales:
 			account_id = default_account_sales.id
