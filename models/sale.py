@@ -516,11 +516,72 @@ class sale_additional_payment_memory(osv.osv_memory):
 
 
 	def _make_payment(self, cr, uid, partner_id,amount, payment_method, invoice_id, journal_id=None, context=None):
+		
+		if payment_method not in ['transfer', 'cash', 'receivable', 'giro']: return False
+		if amount <= 0: return False
+		if not journal_id:
+			raise osv.except_osv(_('Payment Error'), _('Please supply journal for payment method %s.') % payment_method)
 
+		voucher_obj = self.pool.get('account.voucher')
+		journal_obj = self.pool.get('account.journal')
+		account_move_line_obj = self.pool.get('account.move.line')
+		invoice_obj = self.pool.get('account.invoice')
+		move_obj = self.pool.get('account.move')
+
+		account_move_ids = account_move_line_obj.search(cr, uid, [
+			('invoice','=',invoice_id),
+			('account_id.type','=','receivable')
+			])
+		if len(account_move_ids) == 0:
+			raise osv.except_osv(_('Payment Error'),_("There is no receivable account in this invoice's journal."))
+		account_move = account_move_line_obj.browse(cr, uid, account_move_ids[0])
+
+		invoice = invoice_obj.browse(cr, uid, invoice_id)
+		bon_number = invoice.origin
+		journal = journal_obj.browse(cr, uid, journal_id, context)
+
+		# Prepare voucher values for payment
+		voucher_vals = {
+			'partner_id': partner_id.id,
+			'payment_method_type': payment_method,
+			'comment': 'Write-Off',
+			'payment_option': 'without_writeoff',
+			'pre_line': True,
+			'amount': amount,
+			'type': 'receipt',
+			'reference': bon_number,
+			'journal_id': journal_id,
+			'account_id': journal.default_debit_account_id.id or journal.default_credit_account_id.id,
+			'line_cr_ids': [(0, False, {
+				'date_due': fields.date.today(),
+				'reconcile': True if amount >= account_move.debit - account_move.credit else False,
+				'date_original': fields.date.today(),
+				'move_line_id': account_move.id,
+				'amount_unreconciled': account_move.debit - amount, #account_move.credit,
+				'amount': amount,
+				'amount_original': account_move.debit,
+				'account_id': account_move.account_id.id
+			})],
+		}
+
+		# Create payment
+		voucher_id = voucher_obj.create(cr, uid, voucher_vals, context=context)
+		voucher_obj.signal_workflow(cr, uid, [voucher_id], 'proforma_voucher', context=context)
+
+		# browse ulang supaya mendapatkan nilai residual terbaru, setelah ada pembayaran
+		# di atas
+		# kalau sisa invoice sudah 0, langsung tandai Paid
+		invoice = invoice_obj.browse(cr, uid, invoice_id)
+		residual = invoice.residual
+		if invoice.residual <= 0:
+			invoice_obj.write(cr, uid, [invoice_id], {'reconciled': True}, context)
+
+		'''
 		account_move_line_obj = self.pool.get('account.move.line')
 		account_move_id = account_move_line_obj.search(cr, uid, [('invoice', '=', invoice_id.id)])[0]
 		account_move = account_move_line_obj.browse(cr, uid, [account_move_id])
 
+		journal_obj = self.pool.get('account.journal')
 		if not journal_id:
 			journal_obj = self.pool.get('account.journal')
 			if payment_method == 'transfer':
@@ -539,19 +600,13 @@ class sale_additional_payment_memory(osv.osv_memory):
 		#default_account_sales = user_data.branch_id.default_account_sales
 		journal = journal_obj.browse(cr, uid, journal_id, context)
 		account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
-		'''
-		if default_account_sales:
-			account_id = default_account_sales.id
-		else:
-			account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
-		'''
 
 		voucher_vals = {
 			'invoice_id': invoice_id.id,
 			'payment_expected_currency': invoice_id.currency_id.id,
 			'invoice_type': invoice_id.type,
 			'partner_id': partner_id,
-			'journal_id': journal_id[0],
+			'journal_id': journal_id,
 			'type': invoice_id.type in ('out_invoice','out_refund') and 'receipt' or 'payment',
 			'reference': invoice_id.origin,
 			'amount': amount,
@@ -581,7 +636,7 @@ class sale_additional_payment_memory(osv.osv_memory):
 			invoice_obj.write(cr, uid, [invoice_id.id], {'reconciled': True}, context)
 			pass
 		return True
-
+		'''		
 
 	def action_pay(self, cr, uid, ids, context=None):
 		if not ids: return True
@@ -594,15 +649,15 @@ class sale_additional_payment_memory(osv.osv_memory):
 		context.update({
 			#'default_type': inv.type in ('out_invoice','out_refund') and 'receipt' or 'payment',
 		})
-			
+		
 		if additional_payment.payment_transfer_amount > 0:
-			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_transfer_amount, 'transfer', invoice, context=context)
+			self._make_payment(cr, uid, invoice.partner_id, additional_payment.payment_transfer_amount, 'transfer', invoice.id, journal_id=additional_payment.payment_transfer_journal.id,context=context),
 		if additional_payment.payment_cash_amount > 0:
-			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_cash_amount, 'cash', invoice, context=context)
+			self._make_payment(cr, uid, invoice.partner_id, additional_payment.payment_cash_amount, 'cash', invoice.id, journal_id=additional_payment.payment_cash_journal.id,context=context)
 		if additional_payment.payment_receivable_amount > 0:
-			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_receivable_amount, 'receivable', invoice, context=context)
+			self._make_payment(cr, uid, invoice.partner_id, additional_payment.payment_receivable_amount, 'receivable', invoice.id, journal_id=additional_payment.payment_receivable_journal.id,context=context)
 		if additional_payment.payment_giro_amount > 0:
-			self._make_payment(cr, uid, invoice.partner_id.id, additional_payment.payment_giro_amount, 'giro',invoice, context=context)
+			self._make_payment(cr, uid, invoice.partner_id, additional_payment.payment_giro_amount, 'giro',invoice.id, journal_id=additional_payment.payment_giro_journal.id,context=context)
 		
 		'''
 		journal_obj = self.pool.get('account.journal')
