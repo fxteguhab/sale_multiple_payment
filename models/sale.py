@@ -535,13 +535,16 @@ class sale_additional_payment_memory(osv.osv_memory):
 			elif payment_method == 'giro':
 				journal_id = journal_obj.search(cr, uid, [('type', 'in', ['bank'])], limit=1)
 				pass
-		user_data = self.pool['res.users'].browse(cr, uid, uid)
-		default_account_sales = user_data.branch_id.default_account_sales
+		#user_data = self.pool['res.users'].browse(cr, uid, uid)
+		#default_account_sales = user_data.branch_id.default_account_sales
 		journal = journal_obj.browse(cr, uid, journal_id, context)
+		account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
+		'''
 		if default_account_sales:
 			account_id = default_account_sales.id
 		else:
 			account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
+		'''
 
 		voucher_vals = {
 			'invoice_id': invoice_id.id,

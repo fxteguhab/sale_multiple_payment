@@ -89,21 +89,21 @@
 					<group col="8">
 							<group colspan="2" string="Cash">
 								<field name="payment_cash_amount" string="Amount" />
-								<field name="payment_cash_journal" string="Journal" widget="selection" attrs="{'required': [('payment_cash_amount','>',0)]}" />
+								<!--<field name="payment_cash_journal" string="Journal" widget="selection" attrs="{'required': [('payment_cash_amount','>',0)]}" />-->
 							</group>
 							<group colspan="2" string="EDC">
 								<field name="payment_receivable_amount" string="Amount" />
-								<field name="payment_receivable_journal" widget="selection" string="Journal" attrs="{'required': [('payment_receivable_amount','>',0)]}" />
+								<!--<field name="payment_receivable_journal" widget="selection" string="Journal" attrs="{'required': [('payment_receivable_amount','>',0)]}" />-->
 								<field name="approval_code"	/>
 								<field name="card_fee_amount"/>
 							</group>
 							<group colspan="2" string="Transfer">
 								<field name="payment_transfer_amount" string="Amount"/>
-								<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'required': [('payment_transfer_amount','>',0)]}" />
+								<!--<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'required': [('payment_transfer_amount','>',0)]}" />-->
 							</group>
 							<group colspan="2" string="Giro">
 								<field name="payment_giro_amount" string="Amount" />
-								<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'required': [('payment_giro_amount','>',0)]}" />
+								<!--<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'required': [('payment_giro_amount','>',0)]}" />-->
 							</group>
 					</group>
 
