@@ -459,6 +459,16 @@ class sale_additional_payment_memory(osv.osv_memory):
 
 	def _default_payment_cash_journal(self, cr, uid, context={}):
 		user_data = self.pool['res.users'].browse(cr, uid, uid)
+		branch_id = user_data.branch_id.id
+		branch_data = self.pool['tbvip.branch'].browse(cr,uid,branch_id)
+		branch_employee = branch_data.employee_list
+		default_journal_sales = None
+		for employee in branch_employee:
+			if employee.user_id.id == uid:
+				default_journal_sales =  employee.default_journal_sales_override.id
+		return default_journal_sales
+		'''
+		user_data = self.pool['res.users'].browse(cr, uid, uid)
 		if user_data.default_journal_sales_override:
 			return user_data.default_journal_sales_override.id
 		else:
@@ -466,11 +476,18 @@ class sale_additional_payment_memory(osv.osv_memory):
 				return user_data.branch_id.default_journal_sales.id
 			else:
 				return None
+		'''
 
 	def _default_payment_receivable_journal(self, cr, uid, context={}):
+		user_data = self.pool['res.users'].browse(cr, uid, uid)
+		branch_id = user_data.branch_id.id
+		branch_data = self.pool['tbvip.branch'].browse(cr,uid,branch_id)
+		journal_id = branch_data.default_journal_sales_bank.id
+		return journal_id or None
+		'''
 		journal_id = self.pool.get('account.journal').search(cr, uid, [('type', 'in', ['bank'])], limit=1)
 		return journal_id and journal_id[0] or None
-
+		'''
 
 	_defaults = {
 		'payment_cash_journal': _default_payment_cash_journal,
