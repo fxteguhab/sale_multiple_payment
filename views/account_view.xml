@@ -34,7 +34,7 @@
 				</form>
 			</field>
 		</record>
-
+		<!--
 		<record id="view_account_journal_form_inherit" model="ir.ui.view">
 			<field name="name">view.account.journal.form.inherit</field>
 			<field name="model">account.journal</field>
@@ -59,7 +59,7 @@
 				</page>
 			</field>
 		</record>
-
+		-->
 		<record id="view_vendor_receipt_dialog_form_inherit" model="ir.ui.view">
 			<field name="name">view.vendor.receipt.dialog.form.inherit</field>
 			<field name="model">account.voucher</field>
