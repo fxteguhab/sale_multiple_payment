@@ -26,10 +26,12 @@
 								<field name="payment_transfer_amount" string="Amount" attrs="{'readonly': [('state','!=','draft')]}"/>
 								<!--<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')]}" />-->
 							</group>
+							<!--
 							<group colspan="2" string="Giro">
 								<field name="payment_giro_amount" string="Amount" attrs="{'readonly': [('state','!=','draft')]}"/>
-								<!--<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')]}" />-->
+								<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'readonly': [('state','!=','draft')]}" />
 							</group>
+							-->
 							<!--
 							<group colspan="2">
 								
@@ -68,7 +70,7 @@
 					<field name="payment_cash_amount"/>
 					<field name="payment_transfer_amount"/>
 					<field name="payment_receivable_amount"/>
-					<field name="payment_giro_amount"/>
+					<!--<field name="payment_giro_amount"/>-->
 				</field>
 			</field>
 		</record>
@@ -101,10 +103,12 @@
 								<field name="payment_transfer_amount" string="Amount"/>
 								<!--<field name="payment_transfer_journal" widget="selection" string="Journal" attrs="{'required': [('payment_transfer_amount','>',0)]}" />-->
 							</group>
+							<!--
 							<group colspan="2" string="Giro">
 								<field name="payment_giro_amount" string="Amount" />
-								<!--<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'required': [('payment_giro_amount','>',0)]}" />-->
+								<field name="payment_giro_journal" widget="selection" string="Journal" attrs="{'required': [('payment_giro_amount','>',0)]}" />
 							</group>
+							-->
 					</group>
 
 					<footer>
@@ -126,7 +130,7 @@
 						<filter string="Cash" 		name="filter_is_cash" 		domain="[('payment_cash_amount','>',0)]"/>
 						<filter string="Transfer" 	name="filter_is_transfer" 	domain="[('payment_transfer_amount','>',0)]"/>
 						<filter string="EDC" 		name="filter_is_edc" 		domain="[('payment_receivable_amount','>',0)]"/>
-						<filter string="Giro" 		name="filter_is_giro" 		domain="[('payment_giro_amount','>',0)]"/>
+						<!--<filter string="Giro" 		name="filter_is_giro" 		domain="[('payment_giro_amount','>',0)]"/>-->
 					</group>
 				</search>
 			</field>
